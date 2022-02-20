@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+		<title>智能阅卷</title>
+		<!-- css -->
+		<link rel="stylesheet" href="component/layui/css/layui.css" />
+		<!-- Element -->
+		<link rel="stylesheet" href="https://unpkg.com/element-ui@2.8.2/lib/theme-chalk/index.css">
+		<link rel="stylesheet" href="icon/iconfont.css"/>
+		
+		<!-- define-css -->
+		<link rel="stylesheet" type="text/css" href="css/common.css"/>
+		
+	</head>
+	<body>
+		<div class="container" id="app">
+			<div class="nav-bar">
+				<div class="nav-header">
+					<div style="margin-bottom: 0;"><a href="#" style="font-size: x-large;text-decoration: none;color: #FFFFFF;">AI PAPER</a></div>
+				</div>
+				<div class="nav-content">
+					<el-menu default-active="2" class="el-menu-vertical-demo" background-color="#3b424d" text-color="#fff">
+						<el-menu-item index="1">
+							<i class="el-icon-paper-kongzhitaishouye"></i>
+							<span slot="title">首页</span>
+						</el-menu-item>
+						<el-menu-item index="2">
+							<i class="el-icon-edit"></i>
+							<span slot="title">工作台</span>
+						</el-menu-item>
+						<el-menu-item index="3">
+							<i class="el-icon-search"></i>
+							<span slot="title">查询</span>
+						</el-menu-item>
+						<el-menu-item index="4">
+							<i class="el-icon-info"></i>
+							<span slot="title">其他</span>
+						</el-menu-item>
+					</el-menu>
+				</div>
+			</div>
+			<div class="content" >
+				<div class="title">
+				</div>
+				<div class="paper-judge">
+					<div class="paper-judge-left">
+						<el-card class="box-card">
+							<ul style="margin-top: 1.25rem;">
+								<li>
+									<label>学期</label>
+									<el-select v-model="term" disabled></el-select>
+								</li>
+								<li>
+									<label>教师</label>
+									<el-select v-model="teacher.name" disabled>
+										<!-- <el-option
+											v-for="item in allTeachers"
+											:key="item.num"
+											:value="item.num"
+											:label="item.name"
+											:disabled="item.disabled">
+										</el-option> -->
+									</el-select>
+								</li>
+								<li>
+									<label>课程</label>
+									<el-select v-model="courseId" @change="listStudents()" placeholder="请选择">
+										<el-option
+											v-for="item in termCourses"
+											:key="item.id"
+											:value="item.id"
+											:label="item.name">
+										</el-option>
+									</el-select>
+								</li>
+<!-- 								<a href="/paperProcess/index.html">test</a> -->
+							</ul>
+						    
+						</el-card>
+						<div style="margin-bottom: 10px;width: 100%;height: 40px;width:94%;margin-left:3%;margin-top:12px;margin-bottom:2px;">
+							<div style="width: 40%;float: left;text-align: left;"><el-button type="danger" icon="el-icon-delete" @click="deleteAllImg" circle style="margin-left: 0;"></el-button></div>
+							<div style="width: 40%;float: right;text-align: right;"><el-button type="success" icon="el-icon-upload" @click="submitUpload" circle style="margin-right: 0;"></el-button></div>
+						</div>
+						<el-card class="img-card" >
+							<el-upload
+								enctype="multipart/form-data"
+								class="upload-demo"
+								ref="upload"
+								action="http://localhost:8000/getPaperImg"
+								:data="imgUploadPath"
+								:multiple="true"
+								:on-preview="handlePreview"
+								:on-remove="handleRemove"
+								:on-success="uploadSuccess"
+								:on-error="uploadError"
+								:file-list="fileList"
+								list-type="picture-card"
+								:auto-upload="false"
+								style="padding-left: 0.3125rem;width: 100%;">
+								<i class="el-icon-plus" style="margin-top: 0.8rem;"></i>
+							</el-upload>
+							<el-dialog :visible.sync="dialogVisible">
+								<img width="100%" :src="dialogImageUrl" alt="">
+							</el-dialog>
+						</el-card>
+					</div>
+					<div class="paper-judge-right">
+						<el-card class="s-table-card">
+							<el-table ref="table"
+								:data="students"
+								border
+								style="width: 100%;margin-top:5px;border-radius:5px;">
+								<el-table-column
+									type=index
+									label="序号"
+									width="60">
+								</el-table-column>
+								<el-table-column
+									prop="name"
+									label="姓名"
+									width="100">
+								</el-table-column>
+								<el-table-column
+									prop="num"
+									label="学号"
+									width="120">
+								</el-table-column>
+								<el-table-column
+									prop="banji"
+									label="班级"
+									width="120">
+								</el-table-column>
+								<el-table-column
+									prop="grade.choice.grade"
+									label="选择题">
+								</el-table-column>
+								<el-table-column
+									prop="grade.fill.grade"
+									label="填空题">
+								</el-table-column>
+								<el-table-column
+									prop="grade.judge.grade"
+									label="判断题">
+								</el-table-column>
+								<el-table-column
+									prop="grade.q_short.grade"
+									label="简答题">
+								</el-table-column>
+								<el-table-column
+									prop="grade.q_compute.grade"
+									label="计算题">
+								</el-table-column>
+								<el-table-column
+									prop="grade.total"
+									label="总分"
+									style="background-color: bisque;">
+								</el-table-column>
+								<el-table-column label="操作"  width="120">
+									<template slot-scope="scope">
+										<el-button type="text" size="small" @click="correctPaper(scope.$index, scope.row)">批阅</el-button>
+										<i class="el-icon-success" style="color: limegreen;display: none;"></i>
+									</template>
+								</el-table-column> 
+								<el-table-column type="expand" width="1">
+									<div slot-scope="scope" style="width: 105%;padding: 0;margin-left: -2%;margin-top: -1.5%;">
+										<!-- <div>{{ currentCorrectedStudent.grade.total }}</div> -->
+										<i class="el-icon-close" @click="closePand(scope.$index, scope.row)" style="cursor: pointer;margin-left: -1.5rem;"></i>
+										<el-form ref="form" :model="currentCorrectedStudent" style="width: 100%;text-align: center;" v-if="currentCorrectedStudent.grade.total==-1">
+											成绩暂未录入
+										</el-form>
+										<el-form ref="form" :model="currentCorrectedStudent" style="width: 100%;" v-else>
+											<el-form-item>
+												<table class="layui-table" width="100%" style="margin: 0;" align="center">
+													<tr style="width: 100%;">
+														<th rowspan="4" width="5%">选<br/>择<br/>题</th>
+														<th width="8%">题号</th>
+														<td v-for="(ans,index) in answer.choice.answer" class="td-choice-index" style="text-align: center;">{{index+1}}</td>
+														<th width="5%" style="text-align: center;">合计</th>
+													</tr>
+													<tr style="width: 100%;">
+														<th class="ans-td-header" width="8%">正确答案</th>
+														<td v-for="(ans,index) in answer.choice.answer" class="td-choice-right" style="text-align: center;">{{ans}}</td>
+														<td rowspan="3" width="5%" style="text-align: center;">{{currentCorrectedStudent.grade.choice.grade}}</td>
+													</tr>
+													<tr style="width: 100%;">
+														<th class="ans-td-header" width="8%">我的答案</th>
+														<td v-for="i in currentCorrectedStudent.grade.choice.answer" class="td-choice-mine" style="text-align: center;">{{i}}</td>
+													</tr>
+													<tr style="width: 100%;">
+														<th class="ans-td-header" width="8%">小题得分</th>
+														<td v-for="g in currentCorrectedStudent.grade.choice.goal" class="td-choice-goal" style="text-align: center;">{{g}}</td>
+													</tr>
+													
+												</table>
+												<table class="layui-table" width="100%" style="margin: 0;">
+													<tr style="width: 100%;">
+														<th width="5%" rowspan="3">判<br/>断<br/>题</th>
+														<th width="8%">题号</th>
+														<td v-for="(ans,index) in currentCorrectedStudent.grade.judge.goal" class="td-choice-index" style="text-align: center;">{{index+1}}</td>
+														<td width="5%" rowspan="3" style="text-align: center;">{{currentCorrectedStudent.grade.judge.grade}}</td>
+													</tr>
+													<tr style="width: 100%;">
+														<th class="ans-td-header" width="8%">小题得分</th>
+														<td v-for="(ans,index) in currentCorrectedStudent.grade.judge.goal" class="td-choice-goal" style="text-align: center;">
+															<el-input-number v-model="currentCorrectedStudent.grade.judge.goal[index]" @change="giveScore" :precision="1" :step="0.1" :max="10" :min="0"></el-input-number>
+														</td>
+													</tr>
+												</table>
+												<el-collapse>
+													<el-collapse-item>
+														<template slot="title">
+															<i class="el-icon-circle-plus" style="color: red;font-size: medium;"></i>
+														</template>
+														<div style="display: flex;justify-content: center;">
+															<div style="width: 45%;"><el-image :src="answer.judge.answer"></el-image></div>
+															<div style="width: 45%;"><el-image :src="currentCorrectedStudent.grade.judge.answer"></el-image></div>
+														</div>
+													</el-collapse-item>
+												</el-collapse>
+												<table class="layui-table" width="100%" style="margin: 0;">
+													<tr style="width: 100%;">
+														<th width="5%" rowspan="3">简<br/>答<br/>题</th>
+														<th width="8%">题号</th>
+														<td v-for="(ans,index) in currentCorrectedStudent.grade.q_short.goal" class="td-choice-index" style="text-align: center;">{{index+1}}</td>
+														<td width="5%" rowspan="3" style="text-align: center;">{{currentCorrectedStudent.grade.q_short.grade}}</td>
+													</tr>
+													<tr style="width: 100%;">
+														<th class="ans-td-header" width="8%">小题得分</th>
+														<td v-for="(ans,index) in currentCorrectedStudent.grade.q_short.goal" class="td-choice-goal" style="text-align: center;">
+															<el-input-number v-model="currentCorrectedStudent.grade.q_short.goal[index]" @change="giveScore" :precision="1" :step="0.1" :max="10" :min="0"></el-input-number>
+														</td>
+													</tr>
+												</table>
+												<el-collapse>
+													<el-collapse-item>
+														<template slot="title">
+															<i class="el-icon-circle-plus" style="color: red;font-size: medium;"></i>
+														</template>
+														<div style="display: flex;justify-content: center;">
+															<div style="width: 45%;"><el-image :src="answer.q_short.answer"></el-image></div>
+															<div style="width: 45%;"><el-image :src="currentCorrectedStudent.grade.q_short.answer"></el-image></div>
+														</div>
+													</el-collapse-item>
+												</el-collapse>
+												<table class="layui-table" width="100%" style="margin: 0;">
+													<tr style="width: 100%;">
+														<th width="5%" rowspan="3">计<br/>算<br/>题</th>
+														<th width="8%">题号</th>
+														<td v-for="(ans,index) in currentCorrectedStudent.grade.q_compute.answer" class="td-choice-index" style="text-align: center;">{{index+1}}</td>
+														<td width="5%" rowspan="3" style="text-align: center;">{{currentCorrectedStudent.grade.q_compute.grade}}</td>
+													</tr>
+													<tr style="width: 100%;">
+														<th class="ans-td-header" width="8%">小题得分</th>
+														<td v-for="(ans,index) in currentCorrectedStudent.grade.q_compute.answer" class="td-choice-goal" style="text-align: center;">
+															<el-input-number v-model="currentCorrectedStudent.grade.q_compute.answer[index].goal" @change="giveScore" :precision="1" :step="0.1" :max="10" :min="0"></el-input-number>
+														</td>
+													</tr>
+												</table>
+												<el-collapse>
+													<el-collapse-item>
+														<template slot="title">
+															<i class="el-icon-circle-plus" style="color: red;font-size: medium;"></i>
+														</template>
+														<div style="display: flex;justify-content: center;">
+															<div style="width: 45%;display: flex;flex-direction: column;">
+																<div style="width: 100%;" v-for="(ans,index) in answer.q_compute.answer"><el-image :src="ans.path"></el-image></div>
+															</div>
+															<div style="width: 45%;display: flex;flex-direction: column;">
+																<div style="width: 100%;" v-for="(ans,index) in currentCorrectedStudent.grade.q_compute.answer"><el-image :src="ans.path"></el-image></div>
+															</div>
+															
+														</div>
+													</el-collapse-item>
+												</el-collapse>
+												<div>
+													<span>总分：{{currentCorrectedStudent.grade.total}}</span>
+													<el-button style="float: right; padding: 3px 0" type="primary" @click="submitGrade">确认修改</el-button>
+												</div>
+											</el-form-item>
+										</el-form>
+									</div>
+								</el-table-column>
+							</el-table>
+						</el-card>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<!-- js -->
+		<!-- vue 2.6.9-->
+		<script src="https://unpkg.com/vue/dist/vue.js"></script>
+		<script src="https://cdn.bootcss.com/vue-resource/1.5.1/vue-resource.min.js"></script>
+		<!-- Element -->
+		<script src="https://unpkg.com/element-ui@2.8.2/lib/index.js"></script>
+		<!-- JQuery -->
+		<!-- <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script> -->
+		<!-- define-js -->
+		<script src="js/paper.js"></script>
+	</body>
+</html>

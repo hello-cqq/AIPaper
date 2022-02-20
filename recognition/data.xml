@@ -1,0 +1,37 @@
+Request URL: http://localhost/paper/SubmitGrade
+Request Method: POST
+Status Code: 200 200
+Response:
+{status: "success"}
+status: "success"
+
+Request URL: http://localhost/paper/GetTermCourse
+Request Method: POST
+Status Code: 200 200
+Response:
+[{id: 2, name: "C语言程序设计", term: "2018年秋季"}, {id: 4, name: "计算机网络", term: "2018年秋季"},…]
+0: {id: 2, name: "C语言程序设计", term: "2018年秋季"}
+1: {id: 4, name: "计算机网络", term: "2018年秋季"}
+2: {id: 5, name: "数据结构", term: "2018年秋季"}
+
+Request URL: http://localhost/paper/GetAnswer
+Request Method: POST
+Status Code: 200 200
+Response:
+{choice: {total: 20,…}, courseId: 4, fill: {total: 0, num: 0},…}
+choice: {total: 20,…}
+courseId: 4
+fill: {total: 0, num: 0}
+judge: {total: 10, answer: "/media/answer/2018年秋季/计算机网络/judge.jpg", num: 5}
+q_compute: {total: 40, answer: [{path: "/media/answer/2018年秋季/计算机网络/compute1.jpg", goal: 10},…], num: 4}
+q_short: {total: 30, answer: "/media/answer/2018年秋季/计算机网络/short.jpg", num: 5}
+total: 100
+
+Request URL: http://localhost/paper/GetStudents
+Request Method: POST
+Status Code: 200 200
+Response:
+[{banji: "电信1601",…}, {banji: "电信1601",…}, {banji: "电信1601",…}]
+0: {banji: "电信1601",…}
+1: {banji: "电信1601",…}
+2: {banji: "电信1601",…}
