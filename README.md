@@ -1,12 +1,12 @@
 # AIPaper
 智能阅卷系统，批量录入试卷的扫描图片并自动打分
 
-文件夹：
+# 文件夹：
 paper：eclipse maven 工程
 paperProcess：pycharm 工程
 recognition：图像部分代码
 
-配置：
+# 配置：
 web 服务器： Apache Tomcat
 python pip install django
 
